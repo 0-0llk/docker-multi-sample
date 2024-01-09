@@ -1,0 +1,32 @@
+version: '3'
+services:
+  mysql:
+    build: 
+      context: ./mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234qwer
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - 3306:3306
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=root
+      - MYSQL_ROOT_PASSWORD=1234qwer
+      - MYSQL_DATABASE=myapp
+      - MYSQL_PORT=3306
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+volumes:
+  mysql-data:
+    
