@@ -1,5 +1,14 @@
 version: '3'
 services:
+  mysql:
+    build: 
+      context: ./mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234qwer
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - 3306:3306
   backend:
     build:
       context: ./backend
@@ -20,3 +29,4 @@ services:
       - 80:80
 volumes:
   mysql-data:
+    

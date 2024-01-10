@@ -1,0 +1,36 @@
+language:
+  - generic
+
+services:
+  - docker
+
+before_install:
+  - echo "Enter before install stage.."
+  - echo "Start creating an image with dockerfile.."
+  - docker build -t madrenu/multi-sample-backend -f backend/Dockerfile.dev backend
+  - docker build -t madrenu/multi-sample-frontend -f frontend/Dockerfile.dev frontend
+
+script:
+  - echo "Run test"
+  - docker run -e CI=true madrenu/multi-sample-backend npm run test -- --coverage
+  - docker run -e CI=true madrenu/multi-sample-frontend npm run test -- --coverage
+
+after_success:
+  - docker build -t madrenu/multi-sample-backend backend
+  - docker build -t madrenu/multi-sample-frontend frontend
+  - docker build -t madrenu/multi-sample-nginx nginx
+  - echo $DOCKER_PWD | docker login -u $DOCKER_ID --password-stdin
+  - docker push madrenu/multi-sample-backend
+  - docker push madrenu/multi-sample-frontend
+  - docker push madrenu/multi-sample-nginx
+
+deploy:
+  provider: elasticbeanstalk
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
+  region: "ap-northeast-2"
+  app: "docker-multi-sample"
+  env: "Docker-multi-sample-env"
+  bucket_name: $AWS_BUCKET_NAME
+  on:
+    branch: main
