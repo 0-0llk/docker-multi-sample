@@ -1,0 +1,35 @@
+name: Deploy Frontend
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo "${{ secrets.DOCKER_PWD }}" | docker login -u "${{ secrets.DOCKER_ID }}" --password-stdin
+      - run: docker build -t madrenu/multi-sample-frontend -f frontend/Dockerfile.dev frontend
+      - run: docker run -e CI=true madrenu/multi-sample-frontend npm run test -- --coverage
+      - run: docker build -t madrenu/multi-sample-backend backend
+      - run: docker build -t madrenu/multi-sample-frontend frontend
+      - run: docker build -t madrenu/multi-sample-nginx nginx
+      - run: docker push madrenu/multi-sample-backend
+      - run: docker push madrenu/multi-sample-frontend
+      - run: docker push madrenu/multi-sample-nginx
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:  
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: docker-multi-sample
+          environment_name: Docker-multi-sample-env
+          existing_bucket_name: ${{ secrets.AWS_BUCKET_NAME }}
+          region: ap-northeast-2
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
