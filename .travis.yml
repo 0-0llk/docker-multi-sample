@@ -7,12 +7,13 @@ services:
 before_install:
   - echo "Enter before install stage.."
   - echo "Start creating an image with dockerfile.."
-  - docker build -t madrenu/multi-sample-backend -f backend/Dockerfile.dev backend
+#  - docker build -t madrenu/multi-sample-backend -f backend/Dockerfile.dev backend
   - docker build -t madrenu/multi-sample-frontend -f frontend/Dockerfile.dev frontend
 
 script:
   - echo "Run test"
-  - docker run -e CI=true madrenu/multi-sample-backend npm run test -- --coverage
+# no test backend. occupy error.
+#  - docker run -e CI=true madrenu/multi-sample-backend npm run test -- --coverage
   - docker run -e CI=true madrenu/multi-sample-frontend npm run test -- --coverage
 
 after_success:
